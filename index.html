@@ -112,6 +112,56 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .task-manager{font-size:12px;font-weight:700;color:#2563eb;margin-bottom:8px;}
 .task-desc{font-size:13px;color:var(--sub);line-height:1.5;}
 
+/* 카운트다운 배지 색상 */
+.dcount-badge{display:inline-flex;align-items:center;font-size:10px;font-weight:800;border-radius:999px;padding:4px 9px;margin-left:8px;letter-spacing:.3px;}
+.dcount-far    {color:#15803d;background:#dcfce7;}
+.dcount-week   {color:#075985;background:#e0f2fe;}
+.dcount-soon   {color:#92400e;background:#fef3c7;}
+.dcount-warn   {color:#c2410c;background:#fed7aa;}
+.dcount-today  {color:#fff;   background:#dc2626;}
+.dcount-overdue{color:#fff;   background:#7f1d1d;}
+
+/* 업무 카드 hover 시 노출되는 편집/삭제 버튼 */
+.task-actions{display:flex;gap:4px;margin-left:8px;opacity:0;transition:opacity .15s;flex-shrink:0;}
+.task-item:hover .task-actions{opacity:1;}
+.task-action-btn{width:26px;height:26px;border-radius:7px;border:1px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s,border-color .15s;}
+.task-action-btn:hover{background:var(--head-bg);}
+.task-action-btn.btn-del:hover{background:#fee2e2;border-color:#fecaca;}
+.task-action-btn svg{width:11px;height:11px;fill:none;stroke:var(--sub);stroke-width:2;stroke-linecap:round;}
+.task-action-btn.btn-del:hover svg{stroke:#b91c1c;}
+
+/* 업무 추가 버튼 */
+.add-task-btn{font-family:inherit;font-size:12px;font-weight:700;color:#fff;background:var(--text);border:none;border-radius:10px;padding:8px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:opacity .15s;flex-shrink:0;}
+.add-task-btn:hover{opacity:.85;}
+.add-task-btn svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;}
+
+/* 폴링/알림 인디케이터 */
+.status-bar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.poll-indicator{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--sub);padding:4px 10px;background:#fff;border:1px solid var(--border);border-radius:999px;cursor:pointer;transition:background .15s;}
+.poll-indicator:hover{background:var(--head-bg);}
+.poll-indicator.updating{color:#15803d;}
+.poll-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;}
+.poll-indicator.updating .poll-dot{animation:pulse 1.2s ease-in-out infinite;}
+.poll-indicator.paused .poll-dot{background:#a3a3a3;}
+.poll-indicator.error .poll-dot{background:#dc2626;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+.notif-btn{display:inline-flex;align-items:center;gap:6px;font-family:inherit;font-size:11px;font-weight:600;color:var(--sub);padding:4px 10px;background:#fff;border:1px solid var(--border);border-radius:999px;cursor:pointer;transition:background .15s;}
+.notif-btn:hover{background:var(--head-bg);}
+.notif-btn.enabled{color:#15803d;border-color:#bbf7d0;background:#f0fdf4;}
+.notif-btn.denied{color:#b91c1c;border-color:#fecaca;background:#fef2f2;}
+.notif-btn svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;}
+
+/* 업무 폼 */
+.task-form .field{margin-bottom:12px;}
+.task-form .field:last-child{margin-bottom:0;}
+.task-form select.field-input{appearance:auto;}
+.task-form textarea.field-input{resize:vertical;min-height:60px;font-family:inherit;}
+.task-form .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* 부드러운 갱신 효과 */
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.task-item.task-new{animation:fadeIn .35s ease;}
+
 .overdue-btn{display:flex;align-items:center;gap:6px;font-family:inherit;font-size:12px;font-weight:700;color:#b91c1c;background:#fff5f5;border:1.5px solid #fecaca;border-radius:999px;padding:7px 14px;cursor:pointer;transition:background .15s,box-shadow .15s;white-space:nowrap;flex-shrink:0;}
 .overdue-btn:hover{background:#fee2e2;box-shadow:0 2px 8px rgba(185,28,28,.15);}
 .overdue-btn svg{width:14px;height:14px;flex-shrink:0;}
@@ -305,9 +355,25 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   <div class="section-wrap">
     <div class="section-header">
       <div><div class="section-title">주간 업무 리스트</div></div>
-      <button class="overdue-btn" id="overdueBtn" style="display:none" onclick="openOverdueModal()">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><line x1="8" y1="5" x2="8" y2="8"/><line x1="8" y1="11" x2="8.01" y2="11"/></svg>
-        누락 업무 <span class="overdue-count" id="overdueCount">0</span>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+        <button class="overdue-btn" id="overdueBtn" style="display:none" onclick="openOverdueModal()">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><line x1="8" y1="5" x2="8" y2="8"/><line x1="8" y1="11" x2="8.01" y2="11"/></svg>
+          누락 업무 <span class="overdue-count" id="overdueCount">0</span>
+        </button>
+        <button class="add-task-btn" onclick="openTaskModal()">
+          <svg viewBox="0 0 12 12"><line x1="6" y1="2" x2="6" y2="10"/><line x1="2" y1="6" x2="10" y2="6"/></svg>
+          업무 추가
+        </button>
+      </div>
+    </div>
+    <div class="status-bar">
+      <div class="poll-indicator" id="pollIndicator" onclick="togglePolling()" title="자동 갱신 ON/OFF">
+        <span class="poll-dot"></span>
+        <span id="pollLabel">자동 갱신 ON · 30초</span>
+      </div>
+      <button class="notif-btn" id="notifBtn" onclick="requestNotifPermission()" title="마감일 당일 브라우저 알림">
+        <svg viewBox="0 0 16 16"><path d="M8 2a4 4 0 0 0-4 4v3l-1.5 2h11L12 9V6a4 4 0 0 0-4-4z"/><path d="M6 13a2 2 0 0 0 4 0"/></svg>
+        <span id="notifLabel">알림 사용</span>
       </button>
     </div>
     <div class="task-list" id="taskList"></div>
@@ -384,6 +450,48 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   <div class="modal-body" id="settingsBody"></div>
   <div class="modal-footer">
     <button class="modal-btn-close" onclick="closeSettings()">닫기</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="taskOverlay" onclick="closeTaskModal()"></div>
+<div class="modal" id="taskModal">
+  <div class="modal-header">
+    <div>
+      <div class="modal-title" id="taskModalTitle">업무 추가</div>
+      <div class="modal-sub">시트 '담당표' 탭 8행 이하에 저장됩니다</div>
+    </div>
+    <button class="modal-close" onclick="closeTaskModal()">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="task-form" id="taskForm">
+      <div class="field">
+        <label class="field-label">업무명 *</label>
+        <input class="field-input" id="taskName" placeholder="예: 주간 리포트 작성" maxlength="80"/>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label">담당</label>
+          <select class="field-input" id="taskAssignee"></select>
+        </div>
+        <div class="field">
+          <label class="field-label">마감기한</label>
+          <input class="field-input" type="date" id="taskDeadline"/>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">세부사항</label>
+        <textarea class="field-input" id="taskDetail" placeholder="(선택) 세부 내용" maxlength="500"></textarea>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer" style="justify-content:space-between;">
+    <button class="btn-secondary" id="taskDeleteBtn" style="display:none;flex:0 0 auto;padding:9px 16px;" onclick="deleteCurrentTask()">삭제</button>
+    <div style="display:flex;gap:8px;">
+      <button class="modal-btn-close" onclick="closeTaskModal()" style="background:var(--bg);color:var(--sub);">취소</button>
+      <button class="modal-btn-close" id="taskSaveBtn" onclick="saveTask()">저장</button>
+    </div>
   </div>
 </div>
 
@@ -465,22 +573,42 @@ function renderVal(val){
   return `<span style="font-size:12px">${s}</span>`;
 }
 
-async function loadData(){
+async function loadData(force){
+  // force=true: 명시적 갱신(저장/삭제 등) - 인디케이터 표시
+  // force=false 또는 생략: 폴링 - 변경 있을 때만 다시 그림
+  if(force) updatePollIndicator('updating');
   try{
     const res  = await fetch(API_URL);
     const data = await res.json();
     MEMBERS_LIST = data.members || [];
     PERSON       = buildPerson(MEMBERS_LIST);
+
+    const tasks         = data.tasks || [];
+    const completedList = data.completedTasks || [];
+    const newHash       = hashTasks(tasks) + '|' + (data.workSchedule||[]).length + '|' + completedList.length;
+
+    // 폴링이고 변경 없으면 렌더 스킵
+    if(!force && newHash === lastDataHash){
+      updatePollIndicator(pollEnabled ? 'idle' : 'paused');
+      return;
+    }
+    lastDataHash = newHash;
+
+    currentTasksCache = tasks;
     renderMembersBar();
     buildCalendar(data.schedule||[]);
-    buildTasks(data.tasks||[]);
-    buildCompleted(data.completedTasks||[]);
+    buildTasks(tasks);
+    buildCompleted(completedList);
     buildWork(data.workSchedule||[]);
+    updatePollIndicator(pollEnabled ? 'idle' : 'paused');
   }catch(err){
     console.error(err);
-    document.getElementById('calRoot').innerHTML='<div class="loading">데이터를 불러오지 못했습니다.</div>';
-    document.getElementById('workTableWrap').innerHTML='<div class="empty-state">근무일정을 불러오지 못했습니다.</div>';
-    document.getElementById('leaveList').innerHTML='<div class="empty-state">연차계획을 불러오지 못했습니다.</div>';
+    if(force){
+      document.getElementById('calRoot').innerHTML='<div class="loading">데이터를 불러오지 못했습니다.</div>';
+      document.getElementById('workTableWrap').innerHTML='<div class="empty-state">근무일정을 불러오지 못했습니다.</div>';
+      document.getElementById('leaveList').innerHTML='<div class="empty-state">연차계획을 불러오지 못했습니다.</div>';
+    }
+    updatePollIndicator('error');
   }
 }
 
@@ -559,11 +687,12 @@ function buildTasks(tasks){
     const done = !!task['완료'];
     const row  = task['row'];
 
-    let state='',badge='';
-    if(!done&&dl){
-      const diff=Math.floor((dl-today)/86400000);
-      if(diff===0){state='urgent';badge='<span class="task-badge badge-urgent">TODAY</span>';}
-      if(diff<0){state='overdue';badge='<span class="task-badge badge-overdue">지남</span>';}
+    let state='', badge='';
+    if(!done && dl){
+      const diff = Math.floor((dl-today)/86400000);
+      badge = buildCountdownBadge(diff);
+      if(diff === 0)      state = 'urgent';
+      else if(diff < 0)   state = 'overdue';
     }
     if(done) state='done';
 
@@ -581,12 +710,33 @@ function buildTasks(tasks){
         </div>
         <div class="task-manager">담당 · ${task['담당']}</div>
         <div class="task-desc">${task['세부사항']||''}</div>
+      </div>
+      <div class="task-actions">
+        <button class="task-action-btn" title="수정" onclick="event.stopPropagation();openTaskModal(${row})">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="task-action-btn btn-del" title="삭제" onclick="event.stopPropagation();deleteTaskRow(${row},'${(task['업무']||'').replace(/'/g,'')}')">
+          <svg viewBox="0 0 24 24"><polyline points="3,6 5,6 21,6"/><path d="M19,6 l-1,14 a2,2 0 0 1 -2,2 H8 a2,2 0 0 1 -2,-2 L5,6"/><path d="M10 11v6M14 11v6"/></svg>
+        </button>
       </div>`;
 
     const checkEl = el.querySelector('.task-check');
     checkEl.onclick = () => toggleTask(checkEl, el, row, done);
     root.appendChild(el);
   });
+
+  // 마감 임박 알림 발송 (있다면)
+  fireDeadlineNotifications(tasks);
+}
+
+function buildCountdownBadge(diff){
+  if(diff < 0)       return `<span class="dcount-badge dcount-overdue">${Math.abs(diff)}일 지남</span>`;
+  if(diff === 0)     return `<span class="dcount-badge dcount-today">TODAY</span>`;
+  if(diff === 1)     return `<span class="dcount-badge dcount-warn">D-1</span>`;
+  if(diff === 2)     return `<span class="dcount-badge dcount-warn">D-2</span>`;
+  if(diff <= 4)      return `<span class="dcount-badge dcount-soon">D-${diff}</span>`;
+  if(diff <= 7)      return `<span class="dcount-badge dcount-week">D-${diff}</span>`;
+  return                    `<span class="dcount-badge dcount-far">D-${diff}</span>`;
 }
 
 async function toggleTask(checkEl, itemEl, row, currentDone){
@@ -868,7 +1018,26 @@ async function deleteMember(idx, name){
 }
 
 document.addEventListener('keydown', e=>{
-  if(e.key==='Escape'){closeOverdueModal();closeSettings();}
+  if(e.key==='Escape'){closeOverdueModal();closeSettings();closeTaskModal();}
+  // 단축키: N → 업무 추가 (입력 필드 포커스 중이면 무시)
+  if(e.key==='n' || e.key==='N'){
+    const t = e.target;
+    if(t && (t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT')) return;
+    if(document.querySelector('.modal.show')) return;
+    openTaskModal();
+  }
+});
+
+// 탭이 다시 보일 때 즉시 갱신 (5분 이상 백그라운드였다면)
+let lastVisibleTs = Date.now();
+document.addEventListener('visibilitychange', () => {
+  if(!document.hidden){
+    const elapsed = Date.now() - lastVisibleTs;
+    if(elapsed > 5*60*1000 && pollEnabled) loadData(false);
+    lastVisibleTs = Date.now();
+  } else {
+    lastVisibleTs = Date.now();
+  }
 });
 
 function showToast(msg, isError=false){
@@ -883,6 +1052,240 @@ function showToast(msg, isError=false){
   t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';
   clearTimeout(t._timer);
   t._timer=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(20px)';},2500);
+}
+
+// ───────── 업무 CRUD 모달 ─────────
+let editingTaskRow = null;     // null = 추가 모드, 숫자 = 수정 모드
+let currentTasksCache = [];    // 수정 시 기존 값을 찾기 위한 캐시
+
+function openTaskModal(row){
+  editingTaskRow = (typeof row === 'number') ? row : null;
+
+  // 담당자 드롭다운 채우기
+  const sel = document.getElementById('taskAssignee');
+  sel.innerHTML = '<option value="">(선택)</option>' +
+    Object.values(PERSON).map(p => `<option value="${p.full}">${p.full}</option>`).join('');
+
+  if(editingTaskRow){
+    const t = currentTasksCache.find(x => x.row === editingTaskRow);
+    document.getElementById('taskModalTitle').textContent = '업무 수정';
+    document.getElementById('taskName').value     = t ? (t['업무']||'') : '';
+    document.getElementById('taskAssignee').value = t ? (t['담당']||'') : '';
+    document.getElementById('taskDeadline').value = t ? toDateInputValue(t['마감기한']) : '';
+    document.getElementById('taskDetail').value   = t ? (t['세부사항']||'') : '';
+    document.getElementById('taskDeleteBtn').style.display = 'inline-flex';
+  } else {
+    document.getElementById('taskModalTitle').textContent = '업무 추가';
+    document.getElementById('taskName').value     = '';
+    document.getElementById('taskAssignee').value = '';
+    document.getElementById('taskDeadline').value = '';
+    document.getElementById('taskDetail').value   = '';
+    document.getElementById('taskDeleteBtn').style.display = 'none';
+  }
+
+  document.getElementById('taskOverlay').classList.add('show');
+  document.getElementById('taskModal').classList.add('show');
+  setTimeout(() => document.getElementById('taskName').focus(), 100);
+}
+
+function closeTaskModal(){
+  document.getElementById('taskOverlay').classList.remove('show');
+  document.getElementById('taskModal').classList.remove('show');
+  editingTaskRow = null;
+}
+
+function toDateInputValue(v){
+  const d = parseDate(v);
+  if(!d) return '';
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${dd}`;
+}
+
+async function saveTask(){
+  const name     = document.getElementById('taskName').value.trim();
+  const assignee = document.getElementById('taskAssignee').value.trim();
+  const deadline = document.getElementById('taskDeadline').value.trim();
+  const detail   = document.getElementById('taskDetail').value.trim();
+
+  if(!name){ showToast('업무명을 입력해주세요', true); return; }
+
+  const btn = document.getElementById('taskSaveBtn');
+  btn.disabled = true;
+  const origText = btn.textContent;
+  btn.textContent = '저장 중...';
+
+  try{
+    const params = new URLSearchParams({
+      action:   editingTaskRow ? 'updateTask' : 'addTask',
+      name, assignee, deadline, detail,
+    });
+    if(editingTaskRow) params.set('row', editingTaskRow);
+
+    const res  = await fetch(`${API_URL}?${params.toString()}`);
+    const json = await res.json();
+    if(!json.ok) throw new Error(json.error || 'error');
+
+    closeTaskModal();
+    await loadData(true);
+    showToast(editingTaskRow ? '✓ 업무가 수정되었습니다' : '✓ 업무가 추가되었습니다');
+  }catch(err){
+    showToast('⚠ 저장 실패: ' + err.message, true);
+  }finally{
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+}
+
+async function deleteCurrentTask(){
+  if(!editingTaskRow) return;
+  const t = currentTasksCache.find(x => x.row === editingTaskRow);
+  const taskName = t ? t['업무'] : '이 업무';
+  if(!confirm(`'${taskName}'을(를) 삭제하시겠습니까?`)) return;
+
+  try{
+    const res = await fetch(`${API_URL}?action=deleteTask&row=${editingTaskRow}`);
+    const json = await res.json();
+    if(!json.ok) throw new Error(json.error || 'error');
+
+    closeTaskModal();
+    await loadData(true);
+    showToast('✓ 업무가 삭제되었습니다');
+  }catch(err){
+    showToast('⚠ 삭제 실패: ' + err.message, true);
+  }
+}
+
+async function deleteTaskRow(row, taskName){
+  if(!confirm(`'${taskName}'을(를) 삭제하시겠습니까?`)) return;
+  try{
+    const res = await fetch(`${API_URL}?action=deleteTask&row=${row}`);
+    const json = await res.json();
+    if(!json.ok) throw new Error(json.error || 'error');
+    await loadData(true);
+    showToast('✓ 업무가 삭제되었습니다');
+  }catch(err){
+    showToast('⚠ 삭제 실패: ' + err.message, true);
+  }
+}
+
+// ───────── 폴링 (자동 갱신) ─────────
+const POLL_INTERVAL = 30000;
+let pollTimer = null;
+let pollEnabled = true;
+let lastDataHash = '';
+
+function startPolling(){
+  stopPolling();
+  pollTimer = setInterval(() => {
+    if(document.hidden) return;                          // 탭 백그라운드면 건너뜀
+    if(document.querySelector('.modal.show')) return;    // 모달 열려있으면 건너뜀
+    if(editingMemberIdx >= 0 || editingMemberIdx === -2) return;
+    loadData(false).catch(()=>{});
+  }, POLL_INTERVAL);
+  pollEnabled = true;
+  updatePollIndicator('idle');
+}
+
+function stopPolling(){
+  if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
+  pollEnabled = false;
+  updatePollIndicator('paused');
+}
+
+function togglePolling(){
+  if(pollEnabled) stopPolling();
+  else startPolling();
+}
+
+function updatePollIndicator(state){
+  const el  = document.getElementById('pollIndicator');
+  const lbl = document.getElementById('pollLabel');
+  if(!el) return;
+  el.classList.remove('updating','paused','error');
+  if(state === 'updating'){ el.classList.add('updating'); lbl.textContent = '갱신 중...'; }
+  else if(state === 'paused'){ el.classList.add('paused'); lbl.textContent = '자동 갱신 OFF'; }
+  else if(state === 'error'){ el.classList.add('error'); lbl.textContent = '연결 오류'; }
+  else { lbl.textContent = '자동 갱신 ON · 30초'; }
+}
+
+function hashTasks(tasks){
+  return tasks.map(t => `${t.row}|${t['업무']}|${t['담당']}|${t['마감기한']}|${t['완료']?1:0}`).join('||');
+}
+
+// ───────── 브라우저 알림 ─────────
+const NOTIF_STORAGE_KEY = 'fox_notif_sent';
+
+function refreshNotifBtn(){
+  const btn = document.getElementById('notifBtn');
+  const lbl = document.getElementById('notifLabel');
+  if(!('Notification' in window)){
+    btn.style.display = 'none';
+    return;
+  }
+  btn.classList.remove('enabled','denied');
+  if(Notification.permission === 'granted'){ btn.classList.add('enabled'); lbl.textContent = '알림 ON'; }
+  else if(Notification.permission === 'denied'){ btn.classList.add('denied'); lbl.textContent = '알림 차단됨'; }
+  else { lbl.textContent = '알림 사용'; }
+}
+
+async function requestNotifPermission(){
+  if(!('Notification' in window)){ showToast('이 브라우저는 알림을 지원하지 않습니다', true); return; }
+  if(Notification.permission === 'denied'){
+    showToast('브라우저 설정에서 알림 허용을 다시 켜주세요', true);
+    return;
+  }
+  if(Notification.permission === 'default'){
+    const result = await Notification.requestPermission();
+    refreshNotifBtn();
+    if(result === 'granted') showToast('✓ 알림이 활성화되었습니다');
+  }else{
+    showToast('이미 알림이 활성화되어 있습니다');
+  }
+}
+
+function getSentNotifs(){
+  try { return JSON.parse(localStorage.getItem(NOTIF_STORAGE_KEY) || '{}'); }
+  catch(e){ return {}; }
+}
+function saveSentNotifs(obj){
+  try { localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(obj)); } catch(e){}
+}
+function todayKey(){
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+}
+
+function fireDeadlineNotifications(tasks){
+  if(!('Notification' in window) || Notification.permission !== 'granted') return;
+  const today = midnight(new Date());
+  const tKey = todayKey();
+  const sent = getSentNotifs();
+
+  // 오래된 기록 정리 (오늘 날짜 외 항목 삭제)
+  Object.keys(sent).forEach(k => { if(sent[k] !== tKey) delete sent[k]; });
+
+  tasks.forEach(t => {
+    if(t['완료']) return;
+    const dl = parseDate(t['마감기한']);
+    if(!dl) return;
+    const diff = Math.floor((dl-today)/86400000);
+    if(diff !== 0) return;                  // 당일만 알림
+    const key = `${t.row}_${tKey}`;
+    if(sent[key]) return;                   // 이미 보냄
+
+    try{
+      new Notification('📌 오늘 마감 업무', {
+        body: `${t['업무']} · 담당 ${t['담당']||'-'}`,
+        tag:  `task-${t.row}`,
+        icon: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2.5" fill="%231c1c1e"/></svg>',
+      });
+      sent[key] = tKey;
+    }catch(e){ console.error(e); }
+  });
+
+  saveSentNotifs(sent);
 }
 
 // ───────── 완료 업무 리스트 ─────────
@@ -1135,7 +1538,9 @@ function buildWork(weeks){
   });
 }
 
-loadData();
+// ───── 초기화 ─────
+refreshNotifBtn();
+loadData(true).then(() => { startPolling(); });
 </script>
 </body>
 </html>
