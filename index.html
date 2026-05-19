@@ -499,7 +499,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 const DAYS_KO  = ['월','화','수','목','금'];
 const DAYS_EN  = ['Mon','Tue','Wed','Thu','Fri'];
 const DAYS_ALL = ['월','화','수','목','금','토'];
-const API_URL  = 'https://script.google.com/macros/s/AKfycbyeHNj2qb68tfZgIWOI4FrhAlONBj_wu-rxVr0DIPi-OJ_f65vDRsWorFI7Kehs9tr2/exec';
+const API_URL  = 'https://script.google.com/macros/s/AKfycbwclMpvyGTmjHtMayNnugayu2qmTAPma0-Q1J6gXbazEBHJXEJHSYxBTHi-Cq1FLjr6/exec';
 const ANCHOR   = new Date(2026,3,27);
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 
@@ -1061,9 +1061,10 @@ let currentTasksCache = [];    // 수정 시 기존 값을 찾기 위한 캐시
 function openTaskModal(row){
   editingTaskRow = (typeof row === 'number') ? row : null;
 
-  // 담당자 드롭다운 채우기
+  // 담당자 드롭다운 채우기 (전원 옵션 포함)
   const sel = document.getElementById('taskAssignee');
   sel.innerHTML = '<option value="">(선택)</option>' +
+    '<option value="AI 연구원">AI 연구원 (전원)</option>' +
     Object.values(PERSON).map(p => `<option value="${p.full}">${p.full}</option>`).join('');
 
   if(editingTaskRow){
