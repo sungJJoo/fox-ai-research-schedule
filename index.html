@@ -161,6 +161,16 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .task-form textarea.field-input{resize:vertical;min-height:60px;font-family:inherit;}
 .task-form .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 
+/* 담당자 다중 선택 picker */
+.assignee-picker{display:flex;flex-wrap:wrap;gap:6px;padding:8px;background:#fff;border:1.5px solid var(--border);border-radius:9px;min-height:44px;align-items:center;transition:border-color .15s;}
+.assignee-picker:focus-within{border-color:var(--kkh);}
+.assignee-picker .pick-chip{font-family:inherit;font-size:11px;font-weight:600;color:var(--sub);background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:5px 11px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;}
+.assignee-picker .pick-chip:hover{background:var(--head-bg);}
+.assignee-picker .pick-chip.active{background:var(--text);color:#fff;border-color:var(--text);}
+.assignee-picker .pick-chip .mini-av{width:18px;height:18px;font-size:9px;margin-right:0;}
+.assignee-picker .pick-chip.active .mini-av{filter:brightness(1.15);}
+.assignee-picker .pick-divider{width:1px;height:18px;background:var(--border);margin:0 2px;}
+
 /* 부드러운 갱신 효과 */
 @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 .task-item.task-new{animation:fadeIn .35s ease;}
@@ -479,15 +489,13 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
         <label class="field-label">업무명 *</label>
         <input class="field-input" id="taskName" placeholder="예: 주간 리포트 작성" maxlength="80"/>
       </div>
-      <div class="field-row">
-        <div class="field">
-          <label class="field-label">담당</label>
-          <select class="field-input" id="taskAssignee"></select>
-        </div>
-        <div class="field">
-          <label class="field-label">마감기한</label>
-          <input class="field-input" type="date" id="taskDeadline"/>
-        </div>
+      <div class="field">
+        <label class="field-label">담당 <span style="font-weight:500;color:var(--faint);">(여러 명 선택 가능)</span></label>
+        <div class="assignee-picker" id="taskAssignee"></div>
+      </div>
+      <div class="field">
+        <label class="field-label">마감기한</label>
+        <input class="field-input" type="date" id="taskDeadline"/>
       </div>
       <div class="field">
         <label class="field-label">세부사항</label>
@@ -1072,6 +1080,67 @@ function showToast(msg, isError=false){
 let editingTaskRow = null;     // null = 추가 모드, 숫자 = 수정 모드
 let taskModalMode  = 'add';    // 'add' | 'edit' | 'completed-add'
 let currentTasksCache = [];    // 수정 시 기존 값을 찾기 위한 캐시
+let selectedAssignees = new Set();  // 담당자 다중 선택 상태
+
+// ── 담당자 picker ──
+function renderAssigneePicker(){
+  const root = document.getElementById('taskAssignee');
+  if(!root) return;
+  let html = '';
+
+  // 전원 옵션
+  const isAll = selectedAssignees.has('AI 연구원');
+  html += `<button type="button" class="pick-chip ${isAll?'active':''}" onclick="toggleAssignee('AI 연구원')">AI 연구원 (전원)</button>`;
+
+  // 구분선
+  html += `<span class="pick-divider"></span>`;
+
+  // 개별 멤버
+  Object.values(PERSON).forEach(p => {
+    const active = selectedAssignees.has(p.full);
+    const safeName = p.full.replace(/'/g,'').replace(/"/g,'');
+    html += `<button type="button" class="pick-chip ${active?'active':''}" onclick="toggleAssignee('${safeName}')">
+      <span class="mini-av av-${p.cls}">${p.short}</span>${p.full}
+    </button>`;
+  });
+
+  // PERSON에 없는 이름이 선택돼 있으면 (옛 데이터 등) 추가 표시
+  selectedAssignees.forEach(name => {
+    if(name === 'AI 연구원' || PERSON[name]) return;
+    const safeName = name.replace(/'/g,'').replace(/"/g,'');
+    html += `<button type="button" class="pick-chip active" onclick="toggleAssignee('${safeName}')">${name}</button>`;
+  });
+
+  root.innerHTML = html;
+}
+
+function toggleAssignee(name){
+  if(name === 'AI 연구원'){
+    if(selectedAssignees.has('AI 연구원')){
+      selectedAssignees.delete('AI 연구원');
+    } else {
+      selectedAssignees.clear();
+      selectedAssignees.add('AI 연구원');
+    }
+  } else {
+    selectedAssignees.delete('AI 연구원'); // 개인 선택 시 전원 해제
+    if(selectedAssignees.has(name)) selectedAssignees.delete(name);
+    else selectedAssignees.add(name);
+  }
+  renderAssigneePicker();
+}
+
+function getAssigneeValue(){
+  return Array.from(selectedAssignees).join(',');
+}
+
+function setAssigneeFromString(s){
+  selectedAssignees = new Set();
+  if(s){
+    String(s).split(',').map(x => x.trim()).filter(Boolean).forEach(name => selectedAssignees.add(name));
+  }
+  renderAssigneePicker();
+}
 
 function openTaskModal(rowOrMode){
   if(rowOrMode === 'completed'){
@@ -1085,12 +1154,6 @@ function openTaskModal(rowOrMode){
     editingTaskRow = null;
   }
 
-  // 담당자 드롭다운 채우기 (전원 옵션 포함)
-  const sel = document.getElementById('taskAssignee');
-  sel.innerHTML = '<option value="">(선택)</option>' +
-    '<option value="AI 연구원">AI 연구원 (전원)</option>' +
-    Object.values(PERSON).map(p => `<option value="${p.full}">${p.full}</option>`).join('');
-
   const completedField = document.getElementById('taskCompletedField');
   const completedInput = document.getElementById('taskCompletedAt');
   const subEl          = document.getElementById('taskModalSub');
@@ -1100,7 +1163,7 @@ function openTaskModal(rowOrMode){
     document.getElementById('taskModalTitle').textContent = '업무 수정';
     subEl.textContent = "시트 '담당표' 탭에 저장됩니다";
     document.getElementById('taskName').value     = t ? (t['업무']||'') : '';
-    document.getElementById('taskAssignee').value = t ? (t['담당']||'') : '';
+    setAssigneeFromString(t ? (t['담당']||'') : '');
     document.getElementById('taskDeadline').value = t ? toDateInputValue(t['마감기한']) : '';
     document.getElementById('taskDetail').value   = t ? (t['세부사항']||'') : '';
     document.getElementById('taskDeleteBtn').style.display = 'inline-flex';
@@ -1109,7 +1172,7 @@ function openTaskModal(rowOrMode){
     document.getElementById('taskModalTitle').textContent = '완료 업무 추가';
     subEl.textContent = "이미 완료한 업무를 시트 '완료 업무' 탭에 직접 추가합니다";
     document.getElementById('taskName').value     = '';
-    document.getElementById('taskAssignee').value = '';
+    setAssigneeFromString('');
     document.getElementById('taskDeadline').value = '';
     document.getElementById('taskDetail').value   = '';
     document.getElementById('taskDeleteBtn').style.display = 'none';
@@ -1123,7 +1186,7 @@ function openTaskModal(rowOrMode){
     document.getElementById('taskModalTitle').textContent = '업무 추가';
     subEl.textContent = "시트 '담당표' 탭 8행 이하에 저장됩니다";
     document.getElementById('taskName').value     = '';
-    document.getElementById('taskAssignee').value = '';
+    setAssigneeFromString('');
     document.getElementById('taskDeadline').value = '';
     document.getElementById('taskDetail').value   = '';
     document.getElementById('taskDeleteBtn').style.display = 'none';
@@ -1163,7 +1226,7 @@ function deadlineToShort(yyyymmdd){
 
 async function saveTask(){
   const name        = document.getElementById('taskName').value.trim();
-  const assignee    = document.getElementById('taskAssignee').value.trim();
+  const assignee    = getAssigneeValue();
   const deadline    = document.getElementById('taskDeadline').value.trim();
   const detail      = document.getElementById('taskDetail').value.trim();
   const completedAt = document.getElementById('taskCompletedAt').value.trim();
@@ -1459,7 +1522,11 @@ function buildCompleted(tasks){
 
 function getCompletedMemberNames(){
   const set = new Set();
-  COMPLETED_TASKS.forEach(t => { if(t.담당) set.add(String(t.담당).trim()); });
+  COMPLETED_TASKS.forEach(t => {
+    if(!t.담당) return;
+    // 콤마로 구분된 담당자 각각을 칩으로
+    String(t.담당).split(',').map(x => x.trim()).filter(Boolean).forEach(n => set.add(n));
+  });
   return Array.from(set);
 }
 
@@ -1545,7 +1612,11 @@ function renderCompletedList(){
   const startTs = start ? start.getTime() : null;
 
   const filtered = COMPLETED_TASKS.filter(t => {
-    if(completedFilter.member !== 'all' && String(t.담당).trim() !== completedFilter.member) return false;
+    if(completedFilter.member !== 'all'){
+      // 콤마로 구분된 담당자 중 하나라도 일치하면 통과
+      const assignees = String(t.담당 || '').split(',').map(x => x.trim());
+      if(!assignees.includes(completedFilter.member)) return false;
+    }
     if(startTs !== null){
       if(!t.완료시각) return false;
       if(t.완료시각 < startTs) return false;
