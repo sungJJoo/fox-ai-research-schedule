@@ -13,16 +13,26 @@
 URL: https://script.google.com/macros/s/AKfycbxpQ2gMHbwXmjfkQFeGCEDDbWL4I4zCwjP6eV7vwjpPPykmKZBslnJGPrSsTyoAtT3L/exec
 
 ### API 액션
-- GET / — schedule, tasks, members, workSchedule, completedTasks, v 반환
+- GET / — schedule, tasks, members, workSchedule, completedTasks, recurringTasks, v 반환
 - GET ?action=getHash — { v: 버전 } 만 반환 (가벼운 변경 감지용 핑)
 - GET ?action=setComplete&row=N&value=true/false — 업무 완료 토글 (F열 완료시각 포함)
 - GET ?action=addTask&name=X&assignee=Y&deadline=YYYY-MM-DD&detail=Z — 업무 추가 (담당표 마지막 행+1에 삽입)
 - GET ?action=updateTask&row=N&name=X&assignee=Y&deadline=YYYY-MM-DD&detail=Z — 업무 수정 (완료/완료시각은 유지)
 - GET ?action=deleteTask&row=N — 업무 삭제
 - GET ?action=addCompletedTask&name=X&assignee=Y&deadline=YYYY-MM-DD&detail=Z&completedAt=YYYY-MM-DDTHH:MM — 완료 업무 수동 추가
+- GET ?action=addRecurringTask&name=X&assignee=Y&deadline=YYYY-MM-DD&detail=Z — 반복 업무 추가 (수동)
+- GET ?action=updateRecurringTask&row=N&name=X&assignee=Y&deadline=YYYY-MM-DD&detail=Z — 반복 업무 수정
+- GET ?action=deleteRecurringTask&row=N — 반복 업무 삭제
+- GET ?action=setRecurringComplete&row=N&value=true/false — 반복 업무 완료 토글 (자동 아카이브 없음)
 - GET ?action=addMember&name=X&role=Y&color=Z — 멤버 추가
-- GET ?action=updateMember&original=X&name=Y&role=Z&color=W — 멤버 수정 + 담당표/근무일정/완료업무 시트 자동 반영
+- GET ?action=updateMember&original=X&name=Y&role=Z&color=W — 멤버 수정 + 담당표/근무일정/완료업무/반복업무 시트 자동 반영
 - GET ?action=deleteMember&name=X — 멤버 삭제
+
+### 반복 업무 시트
+- 헤더: 업무|담당|마감기한|세부사항|완료|완료시각 (담당표와 동일 구조)
+- 자동 삽입 X — 사용자가 수동 관리
+- 완료 토글해도 자동 삭제 안 됨 (다음 회차에 수동으로 다시 해제)
+- Apps Script가 없으면 자동 생성
 
 ### 성능 최적화
 - **버전 카운터**: PropertiesService에 'v' 저장. 모든 mutation 액션이 bumpVersion()으로 갱신.

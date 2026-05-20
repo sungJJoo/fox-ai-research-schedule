@@ -21,12 +21,17 @@
  *   - 완료 업무: 업무 | 담당 | 마감기한 | 세부사항 | 완료시각 (자동 생성)
  *
  * 액션:
- *   GET /                          → schedule, tasks, members, workSchedule, completedTasks
+ *   GET /                              → schedule, tasks, members, workSchedule, completedTasks, recurringTasks, v
+ *   GET ?action=getHash                → { v } 만 (가벼운 변경 감지 핑)
  *   GET ?action=setComplete&row=N&value=true/false
  *   GET ?action=addTask&name=&assignee=&deadline=&detail=
  *   GET ?action=updateTask&row=N&name=&assignee=&deadline=&detail=
  *   GET ?action=deleteTask&row=N
  *   GET ?action=addCompletedTask&name=&assignee=&deadline=&detail=&completedAt=
+ *   GET ?action=addRecurringTask&name=&assignee=&deadline=&detail=
+ *   GET ?action=updateRecurringTask&row=N&name=&assignee=&deadline=&detail=
+ *   GET ?action=deleteRecurringTask&row=N
+ *   GET ?action=setRecurringComplete&row=N&value=true/false
  *   GET ?action=addMember&name=&role=&color=
  *   GET ?action=updateMember&original=&name=&role=&color=
  *   GET ?action=deleteMember&name=
@@ -87,6 +92,25 @@ function doGet(e) {
       cs.setColumnWidth(5, 160);
     }
     return cs;
+  }
+
+  // ── 반복 업무 시트 자동 생성 (자동 삽입 X, 사용자가 수동 관리) ──
+  function ensureRecurringSheet() {
+    let rs = ss.getSheetByName('반복 업무');
+    if (!rs) {
+      rs = ss.insertSheet('반복 업무');
+      rs.getRange(1, 1, 1, 6).setValues([
+        ['업무', '담당', '마감기한', '세부사항', '완료', '완료시각']
+      ]);
+      rs.getRange(1, 1, 1, 6).setFontWeight('bold').setBackground('#f0ede8');
+      rs.setColumnWidth(1, 220);
+      rs.setColumnWidth(2, 110);
+      rs.setColumnWidth(3, 100);
+      rs.setColumnWidth(4, 280);
+      rs.setColumnWidth(5, 70);
+      rs.setColumnWidth(6, 160);
+    }
+    return rs;
   }
 
   // ── 완료 토글 ──
@@ -236,6 +260,107 @@ function doGet(e) {
       .setMimeType(ContentService.MimeType.JSON);
   }
 
+  // ── 반복 업무 추가 ──
+  if (action === 'addRecurringTask') {
+    const rs = ensureRecurringSheet();
+    const name     = e.parameter.name     || '';
+    const assignee = e.parameter.assignee || '';
+    const deadline = e.parameter.deadline || '';
+    const detail   = e.parameter.detail   || '';
+
+    if (!name) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ ok: false, error: '업무명 누락' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    let deadlineValue = '';
+    if (deadline) {
+      const d = new Date(deadline);
+      if (!isNaN(d.getTime())) deadlineValue = d;
+    }
+
+    rs.appendRow([name, assignee, deadlineValue, detail, false, '']);
+    const newRow = rs.getLastRow();
+    if (deadlineValue) rs.getRange(newRow, 3).setNumberFormat('yyyy-MM-dd');
+
+    bumpVersion();
+    return ContentService
+      .createTextOutput(JSON.stringify({ ok: true, row: newRow }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // ── 반복 업무 수정 ──
+  if (action === 'updateRecurringTask') {
+    const rs = ensureRecurringSheet();
+    const row      = parseInt(e.parameter.row);
+    const name     = e.parameter.name     || '';
+    const assignee = e.parameter.assignee || '';
+    const deadline = e.parameter.deadline || '';
+    const detail   = e.parameter.detail   || '';
+
+    if (!row || row < 2) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ ok: false, error: '행 번호 오류' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    let deadlineValue = '';
+    if (deadline) {
+      const d = new Date(deadline);
+      if (!isNaN(d.getTime())) deadlineValue = d;
+    }
+
+    // A~D만 업데이트 (완료/완료시각은 유지)
+    rs.getRange(row, 1, 1, 4).setValues([[name, assignee, deadlineValue, detail]]);
+    if (deadlineValue) rs.getRange(row, 3).setNumberFormat('yyyy-MM-dd');
+
+    bumpVersion();
+    return ContentService
+      .createTextOutput(JSON.stringify({ ok: true }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // ── 반복 업무 삭제 ──
+  if (action === 'deleteRecurringTask') {
+    const rs = ensureRecurringSheet();
+    const row = parseInt(e.parameter.row);
+    if (!row || row < 2) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ ok: false, error: '행 번호 오류' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    rs.deleteRow(row);
+    bumpVersion();
+    return ContentService
+      .createTextOutput(JSON.stringify({ ok: true }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // ── 반복 업무 완료 토글 (자동 아카이브 없음, 상태만 변경) ──
+  if (action === 'setRecurringComplete') {
+    const rs = ensureRecurringSheet();
+    const row = parseInt(e.parameter.row);
+    const value = e.parameter.value === 'true';
+    if (!row || row < 2) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ ok: false, error: '행 번호 오류' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    rs.getRange(row, 5).setValue(value);
+    const tsCell = rs.getRange(row, 6);
+    if (value) {
+      tsCell.setValue(new Date());
+      tsCell.setNumberFormat('yyyy-MM-dd HH:mm:ss');
+    } else {
+      tsCell.clearContent();
+    }
+    bumpVersion();
+    return ContentService
+      .createTextOutput(JSON.stringify({ ok: true }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
   // ── 멤버 추가 ──
   if (action === 'addMember') {
     const ms    = ensureMemberSheet();
@@ -323,6 +448,20 @@ function doGet(e) {
       if (changed) csheet.getRange(2, 2, cdata.length, 1).setValues(cdata);
     }
 
+    // 5) 반복 업무에서도 담당자 이름 반영
+    const rsheet = ss.getSheetByName('반복 업무');
+    if (rsheet && rsheet.getLastRow() > 1) {
+      const rdata = rsheet.getRange(2, 2, rsheet.getLastRow() - 1, 1).getValues();
+      let changed = false;
+      for (let i = 0; i < rdata.length; i++) {
+        if (String(rdata[i][0]).trim() === original) {
+          rdata[i][0] = name;
+          changed = true;
+        }
+      }
+      if (changed) rsheet.getRange(2, 2, rdata.length, 1).setValues(rdata);
+    }
+
     bumpVersion();
     return ContentService
       .createTextOutput(JSON.stringify({ ok: true }))
@@ -355,6 +494,7 @@ function doGet(e) {
   const tz    = Session.getScriptTimeZone();
   const memberSheet = ensureMemberSheet();
   ensureCompletedSheet();
+  ensureRecurringSheet();
 
   // 멤버 리스트
   const memRaw = memberSheet.getDataRange().getValues();
@@ -473,8 +613,32 @@ function doGet(e) {
     });
   }
 
+  // 반복 업무 읽기
+  const recurringSheet = ss.getSheetByName('반복 업무');
+  let recurringTasks = [];
+  if (recurringSheet && recurringSheet.getLastRow() > 1) {
+    const rRaw = recurringSheet
+      .getRange(2, 1, recurringSheet.getLastRow() - 1, 6)
+      .getValues();
+    recurringTasks = rRaw
+      .map((row, idx) => {
+        const completedAt = (typeof row[5] === 'object' && row[5] !== null && typeof row[5].getTime === 'function')
+          ? row[5].getTime() : null;
+        return {
+          row:       idx + 2,
+          업무:      row[0],
+          담당:      row[1],
+          마감기한:  fmtDate(row[2]),
+          세부사항:  row[3],
+          완료:      row[4] === true || row[4] === 'TRUE',
+          완료시각:  completedAt,
+        };
+      })
+      .filter(t => t['업무']);
+  }
+
   return ContentService
-    .createTextOutput(JSON.stringify({ members, schedule, tasks, workSchedule, completedTasks, v: currentVersion() }))
+    .createTextOutput(JSON.stringify({ members, schedule, tasks, workSchedule, completedTasks, recurringTasks, v: currentVersion() }))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
