@@ -1356,14 +1356,6 @@ async function saveTask(){
     if(eRow) params.set('row', eRow);
     if(mode === 'completed-add') params.set('completedAt', completedAt);
 
-    // ⚠️ DEBUG: 반복 업무 저장 시 URL 확인용 (디버그 끝나면 제거)
-    if(isRecurring){
-      const debugUrl = `${API_URL}?${params.toString()}`;
-      console.log('[DEBUG addRecurringTask URL]', debugUrl);
-      console.log('[DEBUG recDays]', recDays);
-      alert('전송 URL:\n' + decodeURIComponent(debugUrl).slice(-200));
-    }
-
     const res  = await fetch(`${API_URL}?${params.toString()}`);
     const json = await res.json();
     if(!json.ok) throw new Error(json.error || 'error');
