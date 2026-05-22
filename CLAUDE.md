@@ -4,7 +4,9 @@
 3인 팀(윤승희/팀장, 박성주/연구원, 김기환/연구원)의 3주 순환 근무 담당표 웹 대시보드.
 
 ## 파일 구조
-- `index.html` — 전체 프론트엔드 (CSS + HTML + JS 단일 파일)
+- `index.html` — HTML 마크업 (217줄, `styles.css`/`app.js`를 `<link>`/`<script src>`로 로드)
+- `styles.css` — 전체 스타일 (343줄)
+- `app.js` — 전체 클라이언트 로직 (1401줄, 마지막에 `loadData(true).then(()=>startPolling())`로 부팅)
 - `apps-script.gs` — Google Apps Script 백엔드 백업 (실제 실행은 GAS 편집기)
 - `CLAUDE.md` — 프로젝트 컨텍스트
 - `.gitignore` — .claude/ 만 제외 (머신별 설정)
