@@ -4,12 +4,22 @@
 3인 팀(윤승희/팀장, 박성주/연구원, 김기환/연구원)의 3주 순환 근무 담당표 웹 대시보드.
 
 ## 파일 구조
-- `index.html` — HTML 마크업 (217줄, `styles.css`/`app.js`를 `<link>`/`<script src>`로 로드)
-- `styles.css` — 전체 스타일 (343줄)
-- `app.js` — 전체 클라이언트 로직 (1401줄, 마지막에 `loadData(true).then(()=>startPolling())`로 부팅)
+- `index.html` — HTML 마크업 (`styles.css`/`app.js`/`manifest.json`을 외부 로드, PWA 메타 태그 포함)
+- `styles.css` — 전체 스타일 (다크 모드 `[data-theme="dark"]` 오버라이드 포함)
+- `app.js` — 전체 클라이언트 로직 (마지막에 `loadData(true).then(()=>startPolling())`로 부팅, SW 등록 포함)
+- `manifest.json` — PWA 매니페스트 (앱 이름, 아이콘, 색상, display:standalone)
+- `sw.js` — Service Worker (정적 파일 stale-while-revalidate, GAS API는 네트워크 only)
+- `icon.svg` — 앱 아이콘 (512x512, 검정 배경 + 흰 캘린더, maskable 대응)
 - `apps-script.gs` — Google Apps Script 백엔드 백업 (실제 실행은 GAS 편집기)
 - `CLAUDE.md` — 프로젝트 컨텍스트
 - `.gitignore` — .claude/ 만 제외 (머신별 설정)
+
+## PWA 동작
+- **홈 화면 추가**: Chrome/Edge 주소창에 ⊕ 버튼, iOS Safari "공유 → 홈 화면에 추가"
+- **재방문 즉시 로딩**: SW가 html/css/js/icon을 캐시 → 두 번째부터 0.1초 안에 UI 표시
+- **오프라인**: 마지막 캐시된 화면 표시, GAS API는 실패 → 클라이언트의 .catch()로 토스트 안내
+- **SW 갱신**: `sw.js`의 `CACHE_VERSION` 상수를 올리면 다음 진입 시 자동 갱신 (skipWaiting + clients.claim)
+- **GAS API는 캐시 안 함**: `script.google.com` 도메인은 SW가 처리 안 하고 브라우저 기본 동작
 
 ## 백엔드 (Google Apps Script)
 URL: https://script.google.com/macros/s/AKfycbxpQ2gMHbwXmjfkQFeGCEDDbWL4I4zCwjP6eV7vwjpPPykmKZBslnJGPrSsTyoAtT3L/exec

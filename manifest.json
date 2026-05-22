@@ -1,0 +1,20 @@
+{
+  "name": "FOX AI 연구소 담당표",
+  "short_name": "AI 담당표",
+  "description": "3주 순환 근무 담당표 + 업무 관리 대시보드",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f4f0",
+  "theme_color": "#1c1c1e",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

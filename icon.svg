@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- 배경 (안드로이드 maskable 대응: 전체 채움) -->
+  <rect width="512" height="512" rx="96" fill="#1c1c1e"/>
+  <!-- 캘린더 아이콘 (중앙, safe zone 80% 안) -->
+  <g transform="translate(96,128)" stroke="#ffffff" stroke-width="20" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="0" y="32" width="320" height="280" rx="32"/>
+    <line x1="0" y1="112" x2="320" y2="112"/>
+    <line x1="96" y1="0" x2="96" y2="48"/>
+    <line x1="224" y1="0" x2="224" y2="48"/>
+  </g>
+</svg>

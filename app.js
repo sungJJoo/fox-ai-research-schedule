@@ -1420,6 +1420,28 @@ if(window.matchMedia){
   else mq.addListener(handler);  // older browsers
 }
 
+// ───────── PWA Service Worker 등록 ─────────
+// 홈 화면 추가 + 정적 파일 캐시(2번째 방문부터 즉시 로딩) + 오프라인 시 마지막 화면 표시
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => {
+        // 새 버전이 대기 중이면 다음 reload 때 자동 적용 (sw.js의 skipWaiting + clients.claim 덕분)
+        reg.addEventListener('updatefound', () => {
+          const nw = reg.installing;
+          if(!nw) return;
+          nw.addEventListener('statechange', () => {
+            if(nw.state === 'activated' && navigator.serviceWorker.controller){
+              // 새 SW가 활성화됨 — 다음 진입부터 최신 코드. 사용자에게 알림은 굳이 안 함.
+              console.log('[SW] 새 버전 활성화');
+            }
+          });
+        });
+      })
+      .catch(err => console.warn('[SW] 등록 실패', err));
+  });
+}
+
 // ───── 초기화 ─────
 refreshNotifBtn();
 loadData(true).then(() => { startPolling(); });
