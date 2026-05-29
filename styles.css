@@ -30,6 +30,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .topbar-tags{display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
 .sheet-link{text-decoration:none;color:#1c1c1e;font-size:15px;font-weight:700;}
 .sheet-link:hover{opacity:.6;}
+.link-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+.link-btn{font-size:13px;font-weight:700;color:var(--text);background:var(--card);border:1px solid var(--border);border-radius:999px;padding:6px 14px;text-decoration:none;white-space:nowrap;transition:background .15s,opacity .15s;}
+.link-btn:hover{background:var(--head-bg);opacity:.8;}
 .cycle-tag{font-size:12px;color:var(--sub);background:var(--card);border:1px solid var(--border);border-radius:999px;padding:6px 14px;}
 .today-badge{font-size:11px;font-weight:700;color:#e53e3e;background:var(--soft-red);border:1px solid #fed7d7;border-radius:999px;padding:5px 12px;}
 
@@ -371,6 +374,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   .settings-btn,.theme-btn{width:34px;height:34px;border-radius:9px;}
   .settings-btn svg,.theme-btn svg{width:16px;height:16px;}
   .sheet-link{font-size:13px;}
+  .link-btn{font-size:11px;padding:4px 10px;}
   .cycle-tag{font-size:11px;padding:4px 10px;}
   .today-badge{font-size:10px;padding:4px 9px;}
 
