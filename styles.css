@@ -61,17 +61,17 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .settings-btn:hover{background:var(--head-bg);transform:rotate(30deg);}
 .settings-btn svg{width:18px;height:18px;fill:none;stroke:var(--text);stroke-width:1.8;stroke-linecap:round;}
 
-/* ───────── AI 연구소 규칙 노트 (넓은 화면: 우측 여백 고정) ───────── */
-.rules-note{position:fixed;top:24px;right:24px;width:250px;z-index:40;display:flex;flex-direction:column;gap:16px;padding:18px 20px 20px;background:var(--card);border:1px solid var(--border);border-top:3px solid var(--psj);border-radius:16px;box-shadow:0 12px 36px rgba(0,0,0,.10);}
-.rules-note-label{display:inline-flex;align-self:flex-start;align-items:center;font-size:11px;font-weight:800;letter-spacing:.01em;color:var(--psj);background:var(--soft-yellow);border:1px solid var(--soft-yellow-br);border-radius:999px;padding:3px 11px;margin-bottom:11px;}
-.rules-note-list{list-style:none;display:flex;flex-direction:column;gap:9px;}
-.rules-note-list li{position:relative;padding-left:16px;font-size:13.5px;font-weight:600;line-height:1.45;color:var(--text);}
-.rules-note-list li::before{content:'';position:absolute;left:0;top:6px;width:6px;height:6px;border-radius:50%;background:var(--psj);}
+/* ───────── AI 연구소 규칙 노트 (우측 여백 · 에디토리얼) ───────── */
+.rules-note{position:fixed;top:26px;right:26px;width:242px;z-index:40;display:flex;flex-direction:column;gap:18px;padding:20px 22px;background:var(--card);border:1px solid var(--border);border-radius:14px;}
+.rules-note-label{font-size:12.5px;font-weight:800;color:var(--text);padding-bottom:9px;margin-bottom:13px;border-bottom:1px solid var(--border);}
+.rules-note-list{list-style:none;display:flex;flex-direction:column;gap:11px;counter-reset:rule;}
+.rules-note-list li{position:relative;padding-left:21px;font-size:13px;font-weight:500;line-height:1.5;color:var(--text);counter-increment:rule;}
+.rules-note-list li::before{content:counter(rule);position:absolute;left:0;top:1px;font-size:11px;font-weight:700;color:var(--sub);font-variant-numeric:tabular-nums;}
 
 /* 우측 여백이 부족한 화면 — 일반 흐름 상단에 가로로 표시 */
 @media(max-width:1659px){
-  .rules-note{position:static;width:auto;flex-direction:row;flex-wrap:wrap;align-items:flex-start;gap:12px 32px;margin-bottom:20px;padding:16px 22px;box-shadow:none;border-top:1px solid var(--border);border-left:4px solid var(--psj);}
-  .rules-note-list{gap:7px;}
+  .rules-note{position:static;width:auto;flex-direction:row;flex-wrap:wrap;align-items:flex-start;gap:14px 44px;margin-bottom:20px;padding:18px 22px;}
+  .rules-note-list{gap:9px;}
 }
 
 /* ───────── 오늘 요약 히어로 ───────── */
