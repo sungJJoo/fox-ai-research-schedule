@@ -2,7 +2,7 @@
 // 정적 파일은 stale-while-revalidate, GAS API는 네트워크 only
 // 코드 배포 시 CACHE_VERSION 을 올려서 강제 갱신
 
-const CACHE_VERSION = 'fox-v4';
+const CACHE_VERSION = 'fox-v5';
 const STATIC_ASSETS = [
   './',
   './index.html',
